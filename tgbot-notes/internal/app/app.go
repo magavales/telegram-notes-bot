@@ -7,7 +7,10 @@ import (
 	"tgbot-notes/internal/adapters"
 	"tgbot-notes/internal/configs"
 	"tgbot-notes/internal/models"
+	"tgbot-notes/internal/models/handler"
+	"tgbot-notes/internal/repository"
 	"tgbot-notes/internal/services"
+	"time"
 )
 
 func Run() {
@@ -29,13 +32,17 @@ func Run() {
 	}
 	logger.Infof("Configuration loaded")
 
+	postgres, err := repository.NewPostgres(config.URL)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	telegramAdapter, err := adapters.NewTelegramBot(config.Token)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	telegramBot := services.NewTelegramService(telegramAdapter)
-	handler := models.NewHandler()
+	telegramBot := services.NewTelegramService(telegramAdapter, postgres)
+	handler := handler.NewHandler()
 	note := models.NewNote()
 
 	for update := range telegramAdapter.GetUpdates() {
@@ -62,6 +69,10 @@ func Run() {
 
 func initLogger() *logrus.Logger {
 	l := logrus.New()
+	l.Formatter = &logrus.TextFormatter{
+		TimestampFormat: time.Stamp,
+	}
+
 	l.SetOutput(os.Stdout)
 	return l
 }

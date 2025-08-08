@@ -1,10 +1,12 @@
-package models
+package handler
 
 import (
 	"context"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"tgbot-notes/internal/models"
 	"tgbot-notes/internal/models/quotes"
+	"tgbot-notes/internal/models/statuses"
 	"tgbot-notes/internal/services"
 	"time"
 )
@@ -34,24 +36,32 @@ func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.Tele
 }
 
 // Обработка состояния диалога для различных команд
-func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message, note *Note, dialog *string) error {
+func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message, note *models.Note, dialog *string) error {
 	var err error
 	switch *dialog {
 	case "set_note":
-		if note.GetText() == "" {
-			note.SetText(message.Text)
+		if note.GetNote() == "" {
+			note.SetNote(message.Text)
 			err = telegramBot.Send(message, quotes.SettingNoteQuoteSetTime)
-			break
+			return err
 		}
-		if note.GetTime() != time.Now() {
-			err = note.SetTime(message.Text)
+		if note.GetDate() != time.Now() {
+			err = note.SetDate(message.Text)
 			if err != nil {
 				err = telegramBot.Send(message, quotes.SettingNoteQuoteSetTimeError)
-				break
+				return err
+			}
+			note.SetChatID(message.Chat.ID)
+			note.SetStatus(statuses.Uncompleted)
+			err = telegramBot.SentNote(ctx, note)
+			if err != nil {
+				err = telegramBot.Send(message, quotes.SettingNoteQuoteSetError)
+				*dialog = ""
+				return err
 			}
 			err = telegramBot.Send(message, quotes.SettingNoteQuoteEnd)
 			*dialog = ""
-			break
+			return err
 		}
 	}
 
