@@ -46,21 +46,26 @@ func Run() {
 	note := models.NewNote()
 
 	for update := range telegramAdapter.GetUpdates() {
-		if update.Message == nil {
-			continue
-		}
-		if update.Message.IsCommand() {
-			err = handler.HandleCommands(ctx, telegramBot, update.Message)
-			if err != nil {
-				logger.Error(err)
-			}
-			dialog = update.Message.Command()
-		} else {
-			if dialog != "" {
-				err = handler.HandleDialog(ctx, telegramBot, update.Message, note, &dialog)
+		if update.Message != nil {
+			if update.Message.IsCommand() {
+				err = handler.HandleCommands(ctx, telegramBot, update.Message)
 				if err != nil {
 					logger.Error(err)
 				}
+				dialog = update.Message.Command()
+			} else {
+				if dialog != "" {
+					err = handler.HandleDialog(ctx, telegramBot, update.Message, note, &dialog)
+					if err != nil {
+						logger.Error(err)
+					}
+				}
+			}
+		}
+		if update.CallbackQuery != nil {
+			err = handler.HandleCallback(ctx, telegramBot, update.CallbackQuery)
+			if err != nil {
+				logger.Error(err)
 			}
 		}
 

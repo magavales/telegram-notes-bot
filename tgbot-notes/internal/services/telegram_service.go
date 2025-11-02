@@ -22,8 +22,8 @@ func NewTelegramService(telegram interfaces.Telegram, repo *repository.Postgres)
 	return t
 }
 
-func (service *TelegramService) Send(message *tgbotapi.Message, text string) error {
-	err := service.telegram.Send(message.Chat.ID, text)
+func (service *TelegramService) Send(message tgbotapi.MessageConfig) error {
+	err := service.telegram.Send(message)
 	return err
 }
 
@@ -34,5 +34,10 @@ func (service *TelegramService) SetNote(ctx context.Context, note *models.Note) 
 
 func (service *TelegramService) GetNotes(ctx context.Context, chatID int64) ([]*models.Note, error) {
 	notes, err := service.repo.TableNotes.Get(ctx, chatID)
+	return notes, err
+}
+
+func (service *TelegramService) GetNotesByDate(ctx context.Context, chatID int64, button string) ([]*models.Note, error) {
+	notes, err := service.repo.TableNotes.GetByDate(ctx, chatID, button)
 	return notes, err
 }

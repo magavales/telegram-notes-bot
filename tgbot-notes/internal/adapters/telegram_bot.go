@@ -22,8 +22,7 @@ func (bot *TelegramBot) GetUpdates() tgbotapi.UpdatesChannel {
 	return updates
 }
 
-func (bot *TelegramBot) Send(chatID int64, text string) error {
-	message := tgbotapi.NewMessage(chatID, text)
+func (bot *TelegramBot) Send(message tgbotapi.MessageConfig) error {
 	_, err := bot.bot.Send(message)
 	return err
 }

@@ -61,6 +61,6 @@ func (n *Note) SetStatus(status string) {
 }
 
 func (n *Note) String() string {
-	msg := fmt.Sprintf("Задача: %s\nКогда напомнить: %s\nСтатус задачи: %s\n\n", n.note, n.date, n.status)
+	msg := fmt.Sprintf("Задача: %s\nКогда напомнить: %s\nСтатус задачи: %s\n\n", n.note, n.date.String(), n.status)
 	return msg
 }
