@@ -9,5 +9,6 @@ const (
 		"День Месяц Часы:Минуты - 24 Января 15:30"
 	SettingNoteQuoteSetError     string = "Хмм, произошла какая-то ошибка, не могу понять какая. Подожди."
 	SettingNoteQuoteSetTimeError string = "Ты указал неправильно время. Попробуй заново ввести время, когда я должен тебе напомнить."
-	SettingNoteQuoteEnd          string = "Отлично, я все добавил и напомню тебе в срок."
+	SettingNoteQuoteEnd          string = "Отлично, я все добавил и напомню тебе "
+	GettingNotesEmpty            string = "Пока что у вас нет никаких заметок."
 )

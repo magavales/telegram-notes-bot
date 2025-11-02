@@ -28,6 +28,16 @@ func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.Tele
 		err = telegramBot.Send(message, text)
 	case "set_note":
 		err = telegramBot.Send(message, quotes.SettingNoteQuoteSetText)
+	case "get_notes":
+		notes, err := telegramBot.GetNotes(ctx, message.Chat.ID)
+		if err != nil {
+			err = telegramBot.Send(message, quotes.GettingNotesEmpty)
+		}
+		msg := ""
+		for i, value := range notes {
+			msg = msg + fmt.Sprintf("Задача номер %d\n", i+1) + value.String()
+		}
+		err = telegramBot.Send(message, msg)
 	case "help":
 		err = telegramBot.Send(message, quotes.HelpQuote)
 	}
@@ -46,23 +56,25 @@ func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.Telegr
 			return err
 		}
 		if note.GetDate() != time.Now() {
-			err = note.SetDate(message.Text)
+			ctx = context.WithValue(ctx, "set_note", "set_note")
+			err = note.SetDate(ctx, message.Text)
 			if err != nil {
 				err = telegramBot.Send(message, quotes.SettingNoteQuoteSetTimeError)
 				return err
 			}
 			note.SetChatID(message.Chat.ID)
 			note.SetStatus(statuses.Uncompleted)
-			err = telegramBot.SentNote(ctx, note)
+			err = telegramBot.SetNote(ctx, note)
 			if err != nil {
 				err = telegramBot.Send(message, quotes.SettingNoteQuoteSetError)
 				*dialog = ""
 				return err
 			}
-			err = telegramBot.Send(message, quotes.SettingNoteQuoteEnd)
+			err = telegramBot.Send(message, fmt.Sprintf(quotes.SettingNoteQuoteEnd+note.GetDate().Format("02.01.2006 15:04")))
 			*dialog = ""
 			return err
 		}
+
 	}
 
 	return err

@@ -27,7 +27,12 @@ func (service *TelegramService) Send(message *tgbotapi.Message, text string) err
 	return err
 }
 
-func (service *TelegramService) SentNote(ctx context.Context, note *models.Note) error {
+func (service *TelegramService) SetNote(ctx context.Context, note *models.Note) error {
 	err := service.repo.TableNotes.Create(ctx, note)
 	return err
+}
+
+func (service *TelegramService) GetNotes(ctx context.Context, chatID int64) ([]*models.Note, error) {
+	notes, err := service.repo.TableNotes.Get(ctx, chatID)
+	return notes, err
 }
