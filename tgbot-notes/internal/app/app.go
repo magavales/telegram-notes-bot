@@ -46,11 +46,13 @@ func Run() {
 	handler := handler.NewHandler()
 	note := models.NewNote()
 	dialog := models.NewDialog()
+	replyKeyboard := models.NewReplyKeyboard()
+	replyKeyboard.CreateKeyboardGetNoteByDate()
 
 	for update := range telegramAdapter.GetUpdates() {
 		if update.Message != nil {
 			if update.Message.IsCommand() {
-				err = handler.HandleCommands(ctx, telegramBot, update.Message)
+				err = handler.HandleCommands(ctx, telegramBot, update.Message, replyKeyboard)
 				if err != nil {
 					logger.Error(err)
 				}

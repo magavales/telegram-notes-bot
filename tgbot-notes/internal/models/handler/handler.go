@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"tgbot-notes/internal/models"
-	"tgbot-notes/internal/models/buttons"
 	"tgbot-notes/internal/models/quotes"
 	"tgbot-notes/internal/models/statuses"
 	"tgbot-notes/internal/services"
@@ -20,7 +19,7 @@ func NewHandler() *Handler {
 }
 
 // Обработка команд, поступающих от пользователя
-func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message) error {
+func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message, replyKeyboard *models.ReplyKeyboard) error {
 	var err error
 	switch message.Command() {
 	case "start":
@@ -34,7 +33,7 @@ func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.Tele
 	case "get_notes":
 		notes, err := telegramBot.GetNotes(ctx, message.Chat.ID)
 		if err != nil {
-			newMessage := tgbotapi.NewMessage(message.Chat.ID, quotes.GettingNotesEmpty)
+			newMessage := tgbotapi.NewMessage(message.Chat.ID, quotes.GettingNotesQuoteEmpty)
 			err = telegramBot.Send(newMessage)
 		}
 		msg := ""
@@ -44,8 +43,6 @@ func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.Tele
 		newMessage := tgbotapi.NewMessage(message.Chat.ID, msg)
 		err = telegramBot.Send(newMessage)
 	case "get_note_by_date":
-		replyKeyboard := models.NewReplyKeyboard()
-		replyKeyboard.CreateKeyboardGetNoteByDate()
 		newMessage := tgbotapi.NewMessage(message.Chat.ID, "Выбери свой путь: ")
 		newMessage.ReplyMarkup = replyKeyboard.GetKeyboard()
 		err = telegramBot.Send(newMessage)
@@ -99,22 +96,20 @@ func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.Telegr
 }
 
 func (h *Handler) HandleCallback(ctx context.Context, telegramBot *services.TelegramService, callback *tgbotapi.CallbackQuery) error {
-	switch callback.Data {
-	case buttons.Tomorrow:
-		notes, err := telegramBot.GetNotesByDate(ctx, callback.Message.Chat.ID, buttons.Tomorrow)
-		if err != nil {
-			newMessage := tgbotapi.NewMessage(callback.Message.Chat.ID, quotes.GettingNotesEmpty)
-			err = telegramBot.Send(newMessage)
-		}
-		msg := ""
-		for i, value := range notes {
-			msg = msg + fmt.Sprintf("Задача номер %d\n", i+1) + value.String()
-		}
-		newMessage := tgbotapi.NewMessage(callback.Message.Chat.ID, msg)
+	var msg string
+	notes, err := telegramBot.GetNotesByDate(ctx, callback.Message.Chat.ID, callback.Data)
+	if err != nil {
+		newMessage := tgbotapi.NewMessage(callback.Message.Chat.ID, quotes.GettingNotesQuoteEmpty)
 		err = telegramBot.Send(newMessage)
-
-		return err
 	}
+	if len(notes) == 0 {
+		msg = quotes.GettingNotesQuoteEmptyTomorrow
+	}
+	for i, value := range notes {
+		msg = msg + fmt.Sprintf("Задача номер %d\n", i+1) + value.String()
+	}
+	newMessage := tgbotapi.NewMessage(callback.Message.Chat.ID, msg)
+	err = telegramBot.Send(newMessage)
 
-	return nil
+	return err
 }

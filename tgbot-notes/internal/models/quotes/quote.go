@@ -7,8 +7,9 @@ const (
 	SettingNoteQuoteSetText string = "Напиши, какую задачу ты хотел бы добавить."
 	SettingNoteQuoteSetTime string = "Напиши, когда я должен тебе напомнить об этом. Формат, в котором ты должен мне это все отрпавить выглядит вот так:\n" +
 		"День Месяц Часы:Минуты - 24 Января 15:30"
-	SettingNoteQuoteSetError     string = "Хмм, произошла какая-то ошибка, не могу понять какая. Подожди."
-	SettingNoteQuoteSetTimeError string = "Ты указал неправильно время. Попробуй заново ввести время, когда я должен тебе напомнить."
-	SettingNoteQuoteEnd          string = "Отлично, я все добавил и напомню тебе "
-	GettingNotesEmpty            string = "Пока что у вас нет никаких заметок."
+	SettingNoteQuoteSetError       string = "Хмм, произошла какая-то ошибка, не могу понять какая. Подожди."
+	SettingNoteQuoteSetTimeError   string = "Ты указал неправильно время. Попробуй заново ввести время, когда я должен тебе напомнить."
+	SettingNoteQuoteEnd            string = "Отлично, я все добавил и напомню тебе "
+	GettingNotesQuoteEmpty         string = "Пока что у вас нет никаких заметок."
+	GettingNotesQuoteEmptyTomorrow string = "На завтра у Вас ничего незапланированно."
 )
