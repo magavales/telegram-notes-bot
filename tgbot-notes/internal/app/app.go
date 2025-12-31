@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
 	"os"
 	"tgbot-notes/internal/adapters"
 	"tgbot-notes/internal/configs"
@@ -11,14 +10,16 @@ import (
 	"tgbot-notes/internal/repository"
 	"tgbot-notes/internal/services"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 func Run() {
 	var (
-		err    error
-		config *configs.Config
-		logger *logrus.Logger
-		dialog string
+		err     error
+		config  *configs.Config
+		logger  *logrus.Logger
+		command string
 	)
 	ctx := context.Background()
 	logger = initLogger()
@@ -44,6 +45,7 @@ func Run() {
 	telegramBot := services.NewTelegramService(telegramAdapter, postgres)
 	handler := handler.NewHandler()
 	note := models.NewNote()
+	dialog := models.NewDialog()
 
 	for update := range telegramAdapter.GetUpdates() {
 		if update.Message != nil {
@@ -52,14 +54,16 @@ func Run() {
 				if err != nil {
 					logger.Error(err)
 				}
-				dialog = update.Message.Command()
+				command = update.Message.Command()
+				dialog.SetState(command)
 			} else {
-				if dialog != "" {
-					err = handler.HandleDialog(ctx, telegramBot, update.Message, note, &dialog)
+				if command != "" {
+					err = handler.HandleDialog(ctx, telegramBot, update.Message, note, &command, dialog)
 					if err != nil {
-						logger.Error(err)
+						logger.Errorf("%s", err.Error())
 					}
 				}
+
 			}
 		}
 		if update.CallbackQuery != nil {

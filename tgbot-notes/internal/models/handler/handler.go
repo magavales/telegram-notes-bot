@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"tgbot-notes/internal/models"
 	"tgbot-notes/internal/models/buttons"
 	"tgbot-notes/internal/models/quotes"
 	"tgbot-notes/internal/models/statuses"
 	"tgbot-notes/internal/services"
-	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Handler struct {
@@ -58,22 +58,24 @@ func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.Tele
 }
 
 // Обработка состояния диалога для различных команд
-func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message, note *models.Note, dialog *string) error {
+func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message, note *models.Note, command *string, dialog *models.Dialog) error {
 	var err error
-	switch *dialog {
+
+	switch *command {
 	case "set_note":
-		if note.GetNote() == "" {
+		if dialog.GetState("set_note") {
 			note.SetNote(message.Text)
 			newMessage := tgbotapi.NewMessage(message.Chat.ID, quotes.SettingNoteQuoteSetTime)
-			err = telegramBot.Send(newMessage)
+			_ = telegramBot.Send(newMessage)
+			dialog.DeleteState("set_note")
+			dialog.SetState("set_date")
 			return err
 		}
-		if note.GetDate() != time.Now() {
-			ctx = context.WithValue(ctx, "set_note", "set_note")
+		if dialog.GetState("set_date") {
 			err = note.SetDate(ctx, message.Text)
 			if err != nil {
 				newMessage := tgbotapi.NewMessage(message.Chat.ID, quotes.SettingNoteQuoteSetTimeError)
-				err = telegramBot.Send(newMessage)
+				_ = telegramBot.Send(newMessage)
 				return err
 			}
 			note.SetChatID(message.Chat.ID)
@@ -81,17 +83,16 @@ func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.Telegr
 			err = telegramBot.SetNote(ctx, note)
 			if err != nil {
 				newMessage := tgbotapi.NewMessage(message.Chat.ID, quotes.SettingNoteQuoteSetError)
-				err = telegramBot.Send(newMessage)
-				*dialog = ""
+				_ = telegramBot.Send(newMessage)
+				dialog.DeleteState("set_date")
 				return err
 			}
 			newMessage := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(quotes.SettingNoteQuoteEnd+note.GetDate().Format("02.01.2006 15:04")))
 			err = telegramBot.Send(newMessage)
-			*dialog = ""
-			ctx = context.WithValue(ctx, "set_note", "")
+			dialog.DeleteState("set_date")
+			*command = ""
 			return err
 		}
-
 	}
 
 	return err

@@ -20,20 +20,22 @@ func (t *MyTime) Get() time.Time {
 	return t.t
 }
 
+// !!!
 func (t *MyTime) Set(ctx context.Context, currentTime string) error {
 	var (
 		err     error
 		newTime time.Time
 	)
-
-	if ctx.Value("set_note") != nil {
+	newTime, err = time.Parse(time.RFC3339, currentTime)
+	if err != nil {
 		temp := parseTime(currentTime)
 		newTime, err = time.Parse("_2 January 2006 15:04:05", temp)
-		t.t = newTime
-	} else {
-		newTime, err = time.Parse(time.RFC3339, currentTime)
-		t.t = newTime
+		if err != nil {
+			return err
+		}
 	}
+
+	t.t = newTime
 
 	return err
 }
