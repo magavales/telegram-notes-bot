@@ -43,7 +43,7 @@ func (t *MyTime) Set(ctx context.Context, currentTime string) error {
 func (t *MyTime) String() string {
 	year, month, day := t.t.Date()
 	hour, minutes, _ := t.t.Clock()
-	return fmt.Sprintf("%d %s %d %d:%d", year, getMonth(month.String()), day, hour, minutes)
+	return fmt.Sprintf("%d %s %d %d:%d", year, getRUMonth(month), day, hour, minutes)
 }
 
 func parseTime(currentTime string) string {
@@ -60,105 +60,111 @@ func parseTime(currentTime string) string {
 		second = "00"
 	}
 
-	monthNew := getMonth(month)
-	if monthNew > time.Now().Month().String() {
-		newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew, time.Now().Year(), hour, minute, second)
+	monthNew := getIDMonth(month)
+	if monthNew > time.Now().Month() {
+		newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew.String(), time.Now().Year(), hour, minute, second)
 		return newTime
 	}
-	if monthNew == time.Now().Month().String() {
+	if monthNew == time.Now().Month() {
 		tmp, _ := strconv.Atoi(day)
 		if tmp > time.Now().Day() {
-			newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew, time.Now().Year(), hour, minute, second)
+			newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew.String(), time.Now().Year(), hour, minute, second)
 			return newTime
 		} else {
-			newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew, time.Now().Year()+1, hour, minute, second)
+			newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew.String(), time.Now().Year()+1, hour, minute, second)
 			return newTime
 		}
 	}
-	if monthNew < time.Now().Month().String() {
-		newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew, time.Now().Year()+1, hour, minute, second)
+	if monthNew < time.Now().Month() {
+		newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew.String(), time.Now().Year()+1, hour, minute, second)
 		return newTime
 	}
 
 	return ""
 }
 
-func getMonth(month string) string {
+func getIDMonth(month string) time.Month {
 	switch month {
 	case "Январь":
-		return time.January.String()
+		return time.January
 	case "Января":
-		return time.January.String()
+		return time.January
 	case "Февраль":
-		return time.February.String()
+		return time.February
 	case "Февраля":
-		return time.February.String()
+		return time.February
 	case "Март":
-		return time.March.String()
+		return time.March
 	case "Марта":
-		return time.March.String()
+		return time.March
 	case "Апрель":
-		return time.April.String()
+		return time.April
 	case "Апреля":
-		return time.April.String()
+		return time.April
 	case "Май":
-		return time.May.String()
+		return time.May
 	case "Мая":
-		return time.May.String()
+		return time.May
 	case "Июнь":
-		return time.June.String()
+		return time.June
 	case "Июня":
-		return time.June.String()
+		return time.June
 	case "Июль":
-		return time.July.String()
+		return time.July
 	case "Июля":
-		return time.July.String()
+		return time.July
 	case "Август":
-		return time.August.String()
+		return time.August
 	case "Августа":
-		return time.August.String()
+		return time.August
 	case "Сентябрь":
-		return time.September.String()
+		return time.September
 	case "Сентября":
-		return time.September.String()
+		return time.September
 	case "Октябрь":
-		return time.October.String()
+		return time.October
 	case "Октября":
-		return time.October.String()
+		return time.October
 	case "Ноябрь":
-		return time.November.String()
+		return time.November
 	case "Ноября":
-		return time.November.String()
+		return time.November
 	case "Декабрь":
-		return time.December.String()
+		return time.December
 	case "Декабря":
-		return time.December.String()
-	case time.December.String():
+		return time.December
+	default:
+		return time.Now().Month()
+	}
+}
+
+func getRUMonth(month time.Month) string {
+	switch month {
+	case time.December:
 		return "Декабря"
-	case time.January.String():
+	case time.January:
 		return "Января"
-	case time.February.String():
+	case time.February:
 		return "Февраля"
-	case time.March.String():
+	case time.March:
 		return "Марта"
-	case time.April.String():
+	case time.April:
 		return "Апреля"
-	case time.May.String():
+	case time.May:
 		return "Мая"
-	case time.June.String():
+	case time.June:
 		return "Июня"
-	case time.July.String():
+	case time.July:
 		return "Июля"
-	case time.August.String():
+	case time.August:
 		return "Августа"
-	case time.September.String():
+	case time.September:
 		return "Сентября"
-	case time.October.String():
+	case time.October:
 		return "Октября"
-	case time.November.String():
+	case time.November:
 		return "Ноября"
 	default:
-		return time.Now().Month().String()
+		return month.String()
 	}
-
 }
