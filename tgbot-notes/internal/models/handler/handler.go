@@ -3,11 +3,14 @@ package handler
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"tgbot-notes/internal/models"
 	"tgbot-notes/internal/models/quotes"
 	"tgbot-notes/internal/models/statuses"
 	"tgbot-notes/internal/services"
+	"time"
 
+	"github.com/go-co-op/gocron/v2"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -55,8 +58,12 @@ func (h *Handler) HandleCommands(ctx context.Context, telegramBot *services.Tele
 }
 
 // Обработка состояния диалога для различных команд
-func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message, note *models.Note, command *string, dialog *models.Dialog) error {
-	var err error
+func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.TelegramService, message *tgbotapi.Message, note *models.Note, command *string, dialog *models.Dialog, scheduler gocron.Scheduler) error {
+	var (
+		err error
+		//job gocron.Job
+		id int64
+	)
 
 	switch *command {
 	case "set_note":
@@ -77,13 +84,26 @@ func (h *Handler) HandleDialog(ctx context.Context, telegramBot *services.Telegr
 			}
 			note.SetChatID(message.Chat.ID)
 			note.SetStatus(statuses.Uncompleted)
-			err = telegramBot.SetNote(ctx, note)
+			id, err = telegramBot.SetNote(ctx, note)
 			if err != nil {
 				newMessage := tgbotapi.NewMessage(message.Chat.ID, quotes.SettingNoteQuoteSetError)
 				_ = telegramBot.Send(newMessage)
 				dialog.DeleteState("set_date")
 				return err
 			}
+			_, err = scheduler.NewJob(
+				gocron.OneTimeJob(gocron.OneTimeJobStartDateTime(note.GetDate().Add(-3*time.Hour))),
+				gocron.NewTask(
+					func(telegramBot *services.TelegramService, note *models.Note) {
+						newMessage := tgbotapi.NewMessage(message.Chat.ID, note.String())
+						_ = telegramBot.Send(newMessage)
+					},
+					telegramBot,
+					note,
+				),
+				gocron.WithTags(strconv.Itoa(int(id))),
+			)
+			scheduler.Start()
 			newMessage := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf(quotes.SettingNoteQuoteEnd+note.GetDate().Format("02.01.2006 15:04")))
 			err = telegramBot.Send(newMessage)
 			dialog.DeleteState("set_date")

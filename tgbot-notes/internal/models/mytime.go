@@ -67,7 +67,7 @@ func parseTime(currentTime string) string {
 	}
 	if monthNew == time.Now().Month() {
 		tmp, _ := strconv.Atoi(day)
-		if tmp > time.Now().Day() {
+		if tmp >= time.Now().Day() {
 			newTime := fmt.Sprintf("%s %s %d %s:%s:%s", day, monthNew.String(), time.Now().Year(), hour, minute, second)
 			return newTime
 		} else {

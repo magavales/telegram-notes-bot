@@ -17,13 +17,18 @@ func NewTableNotes(db *sql.DB) *TableNotes {
 	return &TableNotes{db: db}
 }
 
-func (tn *TableNotes) Create(ctx context.Context, note *models.Note) error {
-	_, err := tn.db.ExecContext(ctx, "INSERT INTO notes (chat_id, note, date, status)  VALUES ($1, $2, $3, $4)", note.GetChatID(), note.GetNote(), note.GetDate(), note.GetStatus())
+func (tn *TableNotes) Create(ctx context.Context, note *models.Note) (int64, error) {
+	var (
+		err error
+		id  int64
+	)
+	row := tn.db.QueryRowContext(ctx, "INSERT INTO notes (chat_id, note, date, status)  VALUES ($1, $2, $3, $4) RETURNING id", note.GetChatID(), note.GetNote(), note.GetDate(), note.GetStatus())
+	err = row.Scan(&id)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
 func (tn *TableNotes) Get(ctx context.Context, chatID int64) ([]*models.Note, error) {

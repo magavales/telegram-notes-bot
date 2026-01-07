@@ -2,10 +2,11 @@ package services
 
 import (
 	"context"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"tgbot-notes/internal/interfaces"
 	"tgbot-notes/internal/models"
 	"tgbot-notes/internal/repository"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type TelegramService struct {
@@ -27,9 +28,9 @@ func (service *TelegramService) Send(message tgbotapi.MessageConfig) error {
 	return err
 }
 
-func (service *TelegramService) SetNote(ctx context.Context, note *models.Note) error {
-	err := service.repo.TableNotes.Create(ctx, note)
-	return err
+func (service *TelegramService) SetNote(ctx context.Context, note *models.Note) (int64, error) {
+	id, err := service.repo.TableNotes.Create(ctx, note)
+	return id, err
 }
 
 func (service *TelegramService) GetNotes(ctx context.Context, chatID int64) ([]*models.Note, error) {

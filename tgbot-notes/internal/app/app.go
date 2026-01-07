@@ -11,6 +11,7 @@ import (
 	"tgbot-notes/internal/services"
 	"time"
 
+	"github.com/go-co-op/gocron/v2"
 	"github.com/sirupsen/logrus"
 )
 
@@ -42,6 +43,10 @@ func Run() {
 		logger.Fatal(err)
 	}
 
+	scheduler, err := gocron.NewScheduler()
+	if err != nil {
+		logger.Fatal(err)
+	}
 	telegramBot := services.NewTelegramService(telegramAdapter, postgres)
 	handler := handler.NewHandler()
 	note := models.NewNote()
@@ -60,7 +65,7 @@ func Run() {
 				dialog.SetState(command)
 			} else {
 				if command != "" {
-					err = handler.HandleDialog(ctx, telegramBot, update.Message, note, &command, dialog)
+					err = handler.HandleDialog(ctx, telegramBot, update.Message, note, &command, dialog, scheduler)
 					if err != nil {
 						logger.Errorf("%s", err.Error())
 					}
